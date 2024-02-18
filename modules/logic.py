@@ -1,43 +1,63 @@
 import random
 from decouple import config
 
-started_capital_of_gambler = config('STARTED_CAPITAL_OF_GAMBLER', default=1000, cast=int)
-gamblers_capital = 1000
-slots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+started_capital_of_gambler = config('MY_MONEY', default=1000, cast=int)
+gamblers_capital = started_capital_of_gambler
+slots = list(range(1, 11))
 
 
-def start_game():
-    global gamblers_capital, choose_slot, bid
-    user_started_game = input('welcome to the casino want to start playing y/n?: ')
-    if user_started_game == 'y':
-        print(f'your account is currently {gamblers_capital}')
+def get_user_input():
+    while True:
         try:
-            choose_slot = int(input('ok now select your bet slot: '))
-            bid = int(input('enter your bid: '))
+            choose_slot = int(input('Select your bet slot (1-10): '))
+            bid = int(input('Enter your bid: '))
+            print('_______________________________________')
+            if choose_slot not in slots or bid > gamblers_capital or bid < 0:
+                print('Invalid input. Try again.')
+                continue
+
+            return choose_slot, bid
+
         except ValueError:
-            print('invalid input please try again: ')
-        print('_____________________________')
+            print('Invalid input. Try again.')
 
-        random_card()
-        checking_conditions_for_winning()
 
-    elif user_started_game == 'n':
-        print('exit()')
-        breakpoint()
+def spin_wheel():
+    print('Spinning the wheel...')
+    return random.choice(slots)
+
+
+def evaluate_result(choose_slot, result):
+    if choose_slot == result:
+        print(f'Congratulations! You won and your bid is doubled.')
+        return 2
     else:
-        print('invalid input')
+        print('Sorry, you lost your bet.')
+        return -1
 
 
-def checking_conditions_for_winning():
+def play_game():
     global gamblers_capital
-    if choose_slot == random_card():
-        print(f'your bet was successful and it increased by 1.5')
-        gamblers_capital += bid * 1.5
-    elif choose_slot != random_card():
-        print('your bet is not successful you lose your bet')
-        gamblers_capital -= bid
+
+    while True:
+        print(f'Your current balance: {gamblers_capital}$')
+        choose_slot, bid = get_user_input()
+
+        result = spin_wheel()
+        print(f'The winning slot is: {result}')
+
+        multiplier = evaluate_result(choose_slot, result)
+        gamblers_capital += bid * multiplier
+
+        print(f'Your account at the moment: {gamblers_capital}$\n'
+              f'_______________________________________')
+
+        play_again = input('Do you want to play again? (y/n): ')
+        print('_______________________________________')
+        if play_again.lower() != 'y':
+            break
 
 
-def random_card():
-    r_card = random.choice(slots)
-    return r_card
+def print_final_result():
+    print(f'You started with: {started_capital_of_gambler}$ and ended with: {gamblers_capital}$')
+    print('Game over. Thanks for playing!')
